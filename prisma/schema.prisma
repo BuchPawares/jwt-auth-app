@@ -8,9 +8,50 @@ generator client {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
   name      String
   password  String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  wallets   Wallet[]
+}
+
+model Wallet {
+  id           Int           @id @default(autoincrement())
+  user         User          @relation(fields: [userId], references: [id])
+  userId       Int
+  name         String
+  balance      Float         @default(0)
+  currency     String        @default("THB")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // ธุรกรรมหลักของกระเป๋านี้
+  transactions Transaction[] @relation("WalletTransactions")
+
+  // ธุรกรรมที่อ้างถึงกระเป๋านี้ (เวลาโอนเงินเข้ามา)
+  relatedTxns  Transaction[] @relation("RelatedWalletTransactions")
+}
+
+model Transaction {
+  id              Int             @id @default(autoincrement())
+
+  // ความสัมพันธ์หลักกับกระเป๋าที่ทำธุรกรรม
+  wallet          Wallet          @relation("WalletTransactions", fields: [walletId], references: [id])
+  walletId        Int
+
+  // ความสัมพันธ์กับกระเป๋าอีกใบ (ถ้าเป็น TRANSFER)
+  relatedWallet   Wallet?         @relation("RelatedWalletTransactions", fields: [relatedWalletId], references: [id])
+  relatedWalletId Int?
+
+  type            TransactionType
+  amount          Float
+  description     String?
+  createdAt       DateTime        @default(now())
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
 }

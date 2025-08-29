@@ -18,7 +18,7 @@ export const register = async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000 });
-    res.json({ message: 'User registered successfully11', user });
+    res.json({ message: 'User registered successfully11', user ,token: token});
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -34,6 +34,10 @@ export const login = async (req, res) => {
     if (!valid) return res.status(400).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 });
     res.json({ token });
   } catch (err) {
     res.status(500).json({ message: err.message });
